@@ -82,10 +82,3 @@ async fn main() {
 }
 
 
-// #[cfg(target_arch = "wasm32")]
-// #[tokio::main(flavor = "current_thread")]
-// async fn main() { /* ... */ }
-// 
-// #[cfg(not(target_arch = "wasm32"))]
-// #[tokio::main(flavor = "multi_thread")]
-// async fn main() { /* ... */ }
