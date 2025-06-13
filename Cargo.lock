@@ -262,9 +262,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.172"
+version = "0.2.173"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d750af042f7ef4f724306de029d18836c26c1765a54a6a3f094cbd23a7267ffa"
+checksum = "d8cfeafaffdbc32176b64fb251369d52ea9f0a8fbc6f8759edffef7b525d64bb"
 
 [[package]]
 name = "log"
@@ -375,7 +375,7 @@ dependencies = [
 [[package]]
 name = "rinf-router"
 version = "1.1.0"
-source = "git+https://github.com/johnwaltonvi/rinf-router#8e53a49b7f6896492867f9f29fed807f57f6884c"
+source = "git+https://github.com/johnwaltonvi/rinf-router#d561049f9802057ef8fe99cf7e6268df0d18a2c8"
 dependencies = [
  "async-trait",
  "futures",

@@ -1,8 +1,10 @@
-
 use crate::signals::{TodoCommand, TodoItem, TodoList};
 use crate::AppState;
 use rinf::debug_print;
-use rinf_router::State;
+use rinf_router::{State, enable_direct_return};
+
+// Enable direct return for TodoList
+enable_direct_return!(TodoList);
 
 // Helper function to create the current todo list
 async fn create_todo_list(app_state: &AppState) -> TodoList {
@@ -18,7 +20,7 @@ async fn create_todo_list(app_state: &AppState) -> TodoList {
 pub async fn handle_todo_command(
     State(app_state): State<AppState>,
     cmd: TodoCommand,
-) -> (TodoList,) {
+) -> TodoList {  // 👈 Clean return type!
     match cmd {
         TodoCommand::Add { text } => {
             debug_print!("Router received TodoCommand::Add: {}", text);
@@ -64,6 +66,6 @@ pub async fn handle_todo_command(
         }
     }
 
-    // Return the updated list - automatically sent to Dart!
-    (create_todo_list(&app_state).await,)
+    // Clean return - automatically sent to Dart!
+    create_todo_list(&app_state).await
 }
