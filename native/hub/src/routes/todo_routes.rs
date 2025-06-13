@@ -1,23 +1,24 @@
+
 use crate::signals::{TodoCommand, TodoItem, TodoList};
 use crate::AppState;
-use rinf::{debug_print, RustSignal};
+use rinf::debug_print;
 use rinf_router::State;
 
-// Helper function to send the current todo list to Dart
-async fn send_todo_list(app_state: &AppState) {
+// Helper function to create the current todo list
+async fn create_todo_list(app_state: &AppState) -> TodoList {
     let todos = app_state.todos.lock().await;
     let pending_count = todos.iter().filter(|item| !item.completed).count() as u32;
     TodoList {
         items: todos.clone(),
         pending_count,
-    }.send_signal_to_dart();
+    }
 }
 
 /// Unified handler for all TodoCommand signals
 pub async fn handle_todo_command(
     State(app_state): State<AppState>,
     cmd: TodoCommand,
-) {
+) -> (TodoList,) {
     match cmd {
         TodoCommand::Add { text } => {
             debug_print!("Router received TodoCommand::Add: {}", text);
@@ -36,9 +37,6 @@ pub async fn handle_todo_command(
                 let mut todos = app_state.todos.lock().await;
                 todos.push(new_todo);
             }
-
-            // Send updated list to Dart
-            send_todo_list(&app_state).await;
         }
         TodoCommand::Toggle { id } => {
             debug_print!("Router received TodoCommand::Toggle for id: {}", id);
@@ -50,9 +48,6 @@ pub async fn handle_todo_command(
                     todo.completed = !todo.completed;
                 }
             }
-
-            // Send updated list to Dart
-            send_todo_list(&app_state).await;
         }
         TodoCommand::Delete { id } => {
             debug_print!("Router received TodoCommand::Delete for id: {}", id);
@@ -62,15 +57,13 @@ pub async fn handle_todo_command(
                 let mut todos = app_state.todos.lock().await;
                 todos.retain(|t| t.id != id);
             }
-
-            // Send updated list to Dart
-            send_todo_list(&app_state).await;
         }
         TodoCommand::GetAll => {
             debug_print!("Router received TodoCommand::GetAll");
-
-            // Send current list to Dart
-            send_todo_list(&app_state).await;
+            // No state changes needed for GetAll
         }
     }
+
+    // Return the updated list - automatically sent to Dart!
+    (create_todo_list(&app_state).await,)
 }
