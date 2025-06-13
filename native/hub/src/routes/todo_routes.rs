@@ -1,4 +1,4 @@
-use crate::signals::{AddTodo, DeleteTodo, GetTodos, ToggleTodo, TodoItem, TodoList};
+use crate::signals::{TodoCommand, TodoItem, TodoList};
 use crate::AppState;
 use rinf::{debug_print, RustSignal};
 use rinf_router::State;
@@ -13,75 +13,64 @@ async fn send_todo_list(app_state: &AppState) {
     }.send_signal_to_dart();
 }
 
-/// Handler for AddTodo signal
-pub async fn handle_add_todo(
+/// Unified handler for all TodoCommand signals
+pub async fn handle_todo_command(
     State(app_state): State<AppState>,
-    msg: AddTodo,
+    cmd: TodoCommand,
 ) {
-    debug_print!("Router received AddTodo: {}", msg.text);
+    match cmd {
+        TodoCommand::Add { text } => {
+            debug_print!("Router received TodoCommand::Add: {}", text);
 
-    // Create new todo item
-    let mut next_id = app_state.next_id.lock().await;
-    let new_todo = TodoItem {
-        id: *next_id,
-        text: msg.text,
-        completed: false,
-    };
-    *next_id += 1;
+            // Create new todo item
+            let mut next_id = app_state.next_id.lock().await;
+            let new_todo = TodoItem {
+                id: *next_id,
+                text,
+                completed: false,
+            };
+            *next_id += 1;
 
-    // Add to todos
-    {
-        let mut todos = app_state.todos.lock().await;
-        todos.push(new_todo);
-    }
+            // Add to todos
+            {
+                let mut todos = app_state.todos.lock().await;
+                todos.push(new_todo);
+            }
 
-    // Send updated list to Dart
-    send_todo_list(&app_state).await;
-}
+            // Send updated list to Dart
+            send_todo_list(&app_state).await;
+        }
+        TodoCommand::Toggle { id } => {
+            debug_print!("Router received TodoCommand::Toggle for id: {}", id);
 
-/// Handler for ToggleTodo signal
-pub async fn handle_toggle_todo(
-    State(app_state): State<AppState>,
-    msg: ToggleTodo,
-) {
-    debug_print!("Router received ToggleTodo for id: {}", msg.id);
+            // Toggle todo completion status
+            {
+                let mut todos = app_state.todos.lock().await;
+                if let Some(todo) = todos.iter_mut().find(|t| t.id == id) {
+                    todo.completed = !todo.completed;
+                }
+            }
 
-    // Toggle todo completion status
-    {
-        let mut todos = app_state.todos.lock().await;
-        if let Some(todo) = todos.iter_mut().find(|t| t.id == msg.id) {
-            todo.completed = !todo.completed;
+            // Send updated list to Dart
+            send_todo_list(&app_state).await;
+        }
+        TodoCommand::Delete { id } => {
+            debug_print!("Router received TodoCommand::Delete for id: {}", id);
+
+            // Remove todo
+            {
+                let mut todos = app_state.todos.lock().await;
+                todos.retain(|t| t.id != id);
+            }
+
+            // Send updated list to Dart
+            send_todo_list(&app_state).await;
+        }
+        TodoCommand::GetAll => {
+            debug_print!("Router received TodoCommand::GetAll");
+
+            // Send current list to Dart
+            send_todo_list(&app_state).await;
         }
     }
-
-    // Send updated list to Dart
-    send_todo_list(&app_state).await;
-}
-
-/// Handler for DeleteTodo signal
-pub async fn handle_delete_todo(
-    State(app_state): State<AppState>,
-    msg: DeleteTodo,
-) {
-    debug_print!("Router received DeleteTodo for id: {}", msg.id);
-
-    // Remove todo
-    {
-        let mut todos = app_state.todos.lock().await;
-        todos.retain(|t| t.id != msg.id);
-    }
-
-    // Send updated list to Dart
-    send_todo_list(&app_state).await;
-}
-
-/// Handler for GetTodos signal
-pub async fn handle_get_todos(
-    State(app_state): State<AppState>,
-    msg: GetTodos,
-) {
-    debug_print!("Router received GetTodos");
-
-    // Send current list to Dart
-    send_todo_list(&app_state).await;
 }

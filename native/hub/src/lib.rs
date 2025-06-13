@@ -67,10 +67,7 @@ async fn main() {
     // Set up router with shared state
     let router = Router::new()
         .route(handle_small_text)
-        .route(routes::handle_add_todo)
-        .route(routes::handle_toggle_todo)
-        .route(routes::handle_delete_todo)
-        .route(routes::handle_get_todos)
+        .route(routes::handle_todo_command)
         .with_state(app_state);
 
     // Run router in background

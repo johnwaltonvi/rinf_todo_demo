@@ -15,7 +15,7 @@ class _TodoPageState extends State<TodoPage> {
   void initState() {
     super.initState();
     // Request initial todos when the page loads
-    GetTodos().sendSignalToRust();
+    const TodoCommandGetAll().sendSignalToRust();
   }
 
   @override
@@ -26,17 +26,17 @@ class _TodoPageState extends State<TodoPage> {
 
   void _addTodo() {
     if (_textController.text.isNotEmpty) {
-      AddTodo(text: _textController.text).sendSignalToRust();
+      TodoCommandAdd(text: _textController.text).sendSignalToRust();
       _textController.clear();
     }
   }
 
   void _toggleTodo(int id) {
-    ToggleTodo(id: id).sendSignalToRust();
+    TodoCommandToggle(id: id).sendSignalToRust();
   }
 
   void _deleteTodo(int id) {
-    DeleteTodo(id: id).sendSignalToRust();
+    TodoCommandDelete(id: id).sendSignalToRust();
   }
 
   @override
