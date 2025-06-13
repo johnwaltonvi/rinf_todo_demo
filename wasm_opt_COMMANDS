@@ -1,0 +1,5 @@
+# Install wasm optimization tools
+npm install -g wasm-opt
+
+# Optimize the generated WASM file
+wasm-opt web/pkg/hub_bg.wasm -Oz -o web/pkg/hub_bg.wasm
